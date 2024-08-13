@@ -1,0 +1,4 @@
+gradio
+python-dotenv
+elevenlabs
+translate
