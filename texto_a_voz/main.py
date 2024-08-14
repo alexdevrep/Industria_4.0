@@ -9,23 +9,27 @@ from dotenv import dotenv_values
 from translate import Translator
 
 #Configuración .env
-config = dotenv_values("./texto_a_voz/.env")
+config = dotenv_values(".env")
 ELEVENLABS_API_KEY = config["ELEVENLABS_API_KEY"]
 
 
 #Tomamos el texto de la entrada y lo traducimos a inglés y a español
-def texto(text_file):
+def texto(text_file,enable_speech):
     try:
         texto=text_file
         en_translation = Translator(
             from_lang="es", to_lang="en").translate(texto)
+        #Creamos un botón para deshabilitar los dicursos
+        if enable_speech:
+            save_file_path = text_to_speach(texto, "es")
+            en_save_file_path = text_to_speach(en_translation, "en")
+            return save_file_path, en_save_file_path, en_translation
+        else:
+            return None, None, en_translation
         
     except Exception as e:
         raise gr.Error(f"Se ha producido un error {str(e)}")
     
-    save_file_path = text_to_speach(texto, "es")
-    en_save_file_path = text_to_speach(en_translation, "en")
-    return save_file_path, en_save_file_path, en_translation
 
 def text_to_speach(text:str, language: str) -> str:
 #Generamos los discursos en ambos idiomas
@@ -62,10 +66,10 @@ def text_to_speach(text:str, language: str) -> str:
 #Creamos la interfaz web
 web = gr.Interface(
     fn=texto,
-    inputs=gr.TextArea(),
-    outputs=[gr.Audio(label="Spanish"),
-             gr.Audio(label="English"),
-             gr.TextArea(label="English")],
+    inputs=[gr.TextArea(),gr.Checkbox("Enable Speech")],
+    outputs=[gr.Audio(label="Spanish",visible=True),
+             gr.Audio(label="English", visible=True),
+             gr.TextArea(label="Translation",visible="True")],
     title="Convertir texo a voz",
     description="Convertir texo a voz con IA"
 )
